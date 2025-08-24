@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Онлайн тест</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 700px;
+      padding: 30px;
+      text-align: center;
+    }
+    .screen { display: none; }
+    .logo{
+      max-width: 185px;
+      margin: 10px auto 20px;
+      display: block;
+    }
+    .active { display: block; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px;
+      padding: 12px 24px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      transition: 0.2s;
+    }
+    .btn:hover { background: #0056b3; }
+    #certificateContainer {
+      position: relative;
+      display: inline-block;
+    }
+    #certificateContainer img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+    .certText {
+      position: absolute;
+      font-weight: bold;
+      color: #000;
+      text-align: center;
+    }
+    .diploma #certName { top: 58.7%; left: 12%; width: 64%; font-size: 28px; }
+    .diploma #certSubject { top: 44%; left: 15%; width: 37%; font-size: 22px; }
+    .diploma #certPlace { top: 51.8%; left: 7%; width: 18%; font-size: 26px; }
+    .certificate #certName { top: 51.5%; left: 18%; width: 64%; font-size: 26px; }
+    .certificate #certPlace { display: none; }
+    #questionContainer h3 { margin-bottom: 16px; }
+    #questionContainer label { display: block; text-align: left; margin: 6px 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<!-- Экран 0 -->
+<div class="screen active" id="screen0">
+  <img src="logo.jpeg" alt="Логотип" class="logo">
+  <h2>Международный центр развития языков<br>Выберите язык / Тілді таңдаңыз</h2>
+  <button class="btn" onclick="selectLang('ru')">Русский</button>
+  <button class="btn" onclick="selectLang('kk')">Қазақша</button>
+</div>
+
+<!-- Экран 1 -->
+<div class="screen" id="screen1">
+  <h2 id="passwordTitle"></h2>
+  <input type="password" id="passwordInput" placeholder="">
+  <br><br>
+  <button class="btn" onclick="checkPassword()">Далее</button>
+</div>
+
+<!-- Экран 1.5 -->
+<div class="screen" id="screen1_5">
+  <h2 id="chooseClassTitle"></h2>
+  <button class="btn" onclick="selectClass('2 класс')">2 класс</button>
+  <button class="btn" onclick="selectClass('3 класс')">3 класс</button>
+  <button class="btn" onclick="selectClass('4 класс')">4 класс</button>
+</div>
+
+<!-- Экран 2 -->
+<div class="screen" id="screen2">
+  <h2 id="chooseSubjectTitle"></h2>
+  <button class="btn" onclick="chooseSubject('kaz')">🌐 Казахский язык</button>
+  <button class="btn" onclick="chooseSubject('rus')">📖 Русский язык</button>
+  <button class="btn" onclick="chooseSubject('eng')">🌍 Английский язык</button>
+  <button class="btn" onclick="chooseSubject('math')">🧮 Математика</button>
+</div>
+
+<!-- Экран 3 -->
+<div class="screen" id="screen3">
+  <h2 id="enterFioTitle"></h2>
+  <input type="text" id="fioInput" placeholder="">
+  <br><br>
+  <button class="btn" onclick="startTest()">Начать тест</button>
+</div>
+
+<!-- Экран 4 -->
+<div class="screen" id="screen4">
+  <h2 id="testTitle"></h2>
+  <div id="questionContainer"></div>
+  <div>
+    <button class="btn" id="btnPrev" onclick="prevQuestion()"></button>
+    <button class="btn" id="btnNext" onclick="nextQuestion()"></button>
+  </div>
+</div>
+
+<!-- Экран 5 -->
+<div class="screen" id="screen5">
+  <h2 id="resultTitle"></h2>
+  <p id="resultText"></p>
+  <button id="getCertBtn" class="btn" onclick="showCertificate()"></button>
+</div>
+
+<!-- Экран 6 -->
+<div class="screen" id="screen6">
+  <div id="certificateContainer">
+    <img src="certificat.png" alt="Документ">
+    <div id="certName" class="certText"></div>
+    <div id="certSubject" class="certText"></div>
+    <div id="certPlace" class="certText"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let currentLang = 'ru';
+const PASSWORD = "SDG123";
+let fio = "";
+let currentQuestion = 0;
+let score = 0;
+let selectedClass = "";
+
+// Переводы интерфейса
+const texts = {
+  ru: {
+    passwordTitle: "Введите пароль",
+    passwordPlaceholder: "Пароль",
+    chooseClassTitle: "Выберите класс",
+    chooseSubjectTitle: "Выберите предмет",
+    enterFioTitle: "Введите ФИО",
+    fioPlaceholder: "Ваше ФИО",
+    testTitle: "Тест",
+    resultTitle: "Результат",
+    getDiploma: "Получить диплом",
+    getCertificate: "Получить сертификат",
+    btnNext: "Далее ➡",
+    btnPrev: "⬅ Назад"
+  },
+  kk: {
+    passwordTitle: "Құпия сөзді енгізіңіз",
+    passwordPlaceholder: "Құпия сөз",
+    chooseClassTitle: "Сыныпты таңдаңыз",
+    chooseSubjectTitle: "Пәнді таңдаңыз",
+    enterFioTitle: "Аты-жөнін енгізіңіз",
+    fioPlaceholder: "Аты-жөніңіз",
+    testTitle: "Тест",
+    resultTitle: "Нәтиже",
+    getDiploma: "Диплом алу",
+    getCertificate: "Сертификат алу",
+    btnNext: "Келесі ➡",
+    btnPrev: "⬅ Артқа"
+  }
+};
+
+// Применяем язык к интерфейсу
+function applyLang() {
+  document.getElementById("passwordTitle").textContent = texts[currentLang].passwordTitle;
+  document.getElementById("passwordInput").placeholder = texts[currentLang].passwordPlaceholder;
+  document.getElementById("chooseClassTitle").textContent = texts[currentLang].chooseClassTitle;
+  document.getElementById("chooseSubjectTitle").textContent = texts[currentLang].chooseSubjectTitle;
+  document.getElementById("enterFioTitle").textContent = texts[currentLang].enterFioTitle;
+  document.getElementById("fioInput").placeholder = texts[currentLang].fioPlaceholder;
+  document.getElementById("testTitle").textContent = texts[currentLang].testTitle;
+  document.getElementById("resultTitle").textContent = texts[currentLang].resultTitle;
+  document.getElementById("btnNext").textContent = texts[currentLang].btnNext;
+  document.getElementById("btnPrev").textContent = texts[currentLang].btnPrev;
+}
+
+function selectLang(lang) {
+  currentLang = lang;
+  applyLang();
+  showScreen(1);
+}
+
+function checkPassword() {
+  const val = document.getElementById("passwordInput").value;
+  if(val === PASSWORD) showScreen("1_5"); 
+  else alert(currentLang === 'ru' ? "Неверный пароль" : "Құпия сөз дұрыс емес");
+}
+
+function selectClass(cls) {
+  selectedClass = cls;
+  showScreen(2);
+}
+
+function chooseSubject(subj) { showScreen(3); }
+
+function startTest() {
+  fio = document.getElementById("fioInput").value.trim();
+  if (!fio) { alert(currentLang === 'ru' ? "Введите ФИО!" : "Аты-жөніңізді енгізіңіз!"); return; }
+  score = 0; currentQuestion = 0;
+  showQuestion(); showScreen(4);
+}
+
+// === Вопросы ===
+// Тут можно вставить ваши 25 вопросов, как в оригинале
+const questions = [
+  {q:"Еріндік, жіңішке әрі қысаң дауысты дыбыстарды табыңыз.", options:["ұ","ө","о","ү"], answer:3},
+  {q:"Үнді мен қатаң дауыссыздар қатар келген сөзді табыңыз.", options:["Күзде жаңбыр жиі жауады.","Әсет базардан доп алды.","Қыста қар қалың жауды.","Жаздыгүні ауылға бардық."], answer:2},
+  {q:"Үндестік заңына бағынбайтын қосымшасы бар сөзді табыңыз.", options:["жақсылық","балалар","күлекеш","көрермін"], answer:2},
+  {q:"Мағынасы ұқсас (синоним) емес сөздерді табыңыз.", options:["атамекен, отан","шағым, өкініш","қария, қарт","сабырлы, төзімді"], answer:3},
+  {q:"«Алпамыс батыр» жырының қазақ тілінде қанша нұсқасы бар?", options:["9","10","11","12"], answer:1},
+  {q:"Алпамыс батырдың тұлпары", options:["Керқұла","Тайбурыл","Шалқұйрық","Байшұбар"], answer:3},
+  {q:"Абай Құнанбаевтың өмір сүрген жылдары", options:["1845–1905","1844–1904","1845–1910","1845–1904"], answer:3},
+  {q:"«Естіген нәрсені ұмытпастыққа төрт түрлі себеп бар: ...» деп басталатын Абайдың нешінші қара сөзі?", options:["отызыншы","отыз бірінші","отыз екінші","отыз үшінші"], answer:1},
+  {q:"Омоним болатын сөзді табыңыз.", options:["Мұғалім","Ел","Жақсысыз","Сау"], answer:3},
+  {q:"Көп мағыналы сөзді көрсетіңіз. «Біз таудың басына шығып келдік.»", options:["Біз","Таудың","Басына","Шығып"], answer:2},
+  {q:"Әрі жіңішке, әрі ашық дауысты дыбысты табыңыз.", options:["Е","И","О","А"], answer:0},
+  {q:"Мақалды аяқта: «Отан – ... анасы, ел – ... анасы».", options:["жерінің, елінің","баланың, ата-анасының","достың, жаудың","елдің, ердің"], answer:3},
+  {q:"«Домбыра» өлеңінің авторы кім?", options:["Ілияс Жансүгіров","Сапарғали Бегалин","Ыбырай Алтынсарин","Сәкен Сейфуллин"], answer:0},
+  {q:"М.Жұмабаевтың алғашқы кітабы қалай аталады?", options:["Шолпан","Өткен күндер","Таңғы шық","Өзек"], answer:3},
+  {q:"«Дүниеде не өлмейді?»", options:["байлық","ғалымның хаты","табиғат","ағынды су"], answer:0},
+  {q:"Шешендік дегеніміз –", options:["мәнерлеп сөйлеу","ақыл айту","көркем тілмен айтылған үлгілі ой, тұжырымдар","оқиғаның, құбылыстың ашық айтылуы"], answer:2},
+  {q:"Жыраулар поэзиясының тақырыбы:", options:["Отанды қорғау","жастардың бас бостандығы","хандарды дәріптеу","ел бірлігі, ел бүтіндігі"], answer:3},
+  {q:"Риторикалық сұрау дегеніміз –", options:["ойды, сезімді әсерлі жеткізу","мысқылдау","жыр айтушы","мәнерлеп сөйлеу"], answer:0},
+  {q:"Ауызша сөйлеу тілдің де, жазба тілдің де дамуына ортақ негізді көрсетіңіздер.", options:["Ғылыми терминдер","Жалпыхалықтық тіл","Диалектілер","Афоризмдер"], answer:1},
+  {q:"Тілдің материалдық жағына не жатады?", options:["Тілдің сөз байлығы","Басқа тілден енген сөздер","Этнолингвистикалық атаулар","Тіл дыбыстарының, сөздердің, грамматикалық формалардың жиынтығы"], answer:3},
+  {q:"Географиялық терминді табыңыз.", options:["антоним","бастауыш","түбек","амон"], answer:2},
+  {q:"Сәлемдескенде айтылатын сөзді табыңыз.", options:["Сау болыңыз!","Амансыз ба?","Қош болыңыз!","Көріскенше!"], answer:1},
+  {q:"Диалект сөзді табыңыз.", options:["еңбек, арман","әйдік, пәс","барлық, күллі","гүрс-гүрс"], answer:1},
+  {q:"Жіктеу есімдігі", options:["Біз","кімдер","өзім","бәрі"], answer:0},
+  {q:"Дұрыс жазылған сөз", options:["Кең маңлай","Кеңмаңлай","Кеңмаңдай","Кең маңдай"], answer:2}
+];
+
+function showQuestion() {
+  if (currentQuestion >= questions.length) { finishTest(); return; }
+  const q = questions[currentQuestion];
+  let html = `<h3>${currentQuestion+1}. ${q.q}</h3>`;
+  q.options.forEach((opt,i)=>{
+    const checked = (q.userAnswer === i) ? "checked" : "";
+    html += `<label><input type="radio" name="opt" value="${i}" ${checked}> ${opt}</label>`;
+  });
+  document.getElementById("questionContainer").innerHTML = html;
+}
+function saveAnswer() {
+  const sel = document.querySelector("input[name=opt]:checked");
+  if (sel) questions[currentQuestion].userAnswer = parseInt(sel.value);
+}
+function nextQuestion() { saveAnswer(); if (currentQuestion < questions.length - 1) { currentQuestion++; showQuestion(); } else { finishTest(); } }
+function prevQuestion() { saveAnswer(); if (currentQuestion > 0) { currentQuestion--; showQuestion(); } }
+
+function finishTest() {
+  score = 0;
+  questions.forEach(q => { if (q.userAnswer === q.answer) score++; });
+  let placeText = "";
+  if (score >= 23) placeText = "1 место";
+  else if (score >= 20) placeText = "2 место";
+  else if (score >= 15) placeText = "3 место";
+  document.getElementById("resultText").textContent = 
+    (currentLang==='ru' 
+      ? `Вы набрали ${score} из ${questions.length} баллов. ${placeText}` 
+      : `${score} дұрыс жауап бердіңіз ${questions.length}-ден. ${placeText}`);
+  document.getElementById("getCertBtn").textContent = (score >= 15) ? texts[currentLang].getDiploma : texts[currentLang].getCertificate;
+  showScreen(5);
+}
+
+function showCertificate() {
+  const container = document.getElementById("certificateContainer");
+  container.classList.remove("diploma", "certificate");
+  document.getElementById("certName").textContent = fio;
+  document.getElementById("certSubject").textContent = currentLang==='ru' ? "Казахский язык" : "Қазақ тілі";
+  const img = document.querySelector("#certificateContainer img");
+  const placeEl = document.getElementById("certPlace");
+
+  if (score >= 15) {
+    img.src = "diploma.png";
+    container.classList.add("diploma");
+    if (score >= 23) placeEl.textContent = "1";
+    else if (score >= 20) placeEl.textContent = "2";
+    else placeEl.textContent = "3";
+  } else {
+    img.src = "certificat.png";
+    container.classList.add("certificate");
+    placeEl.textContent = "";
+  }
+  showScreen(6);
+}
+
+function showScreen(n) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen"+n).classList.add("active");
+}
+</script>
+</body>
+</html>
